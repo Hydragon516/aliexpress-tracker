@@ -3,7 +3,6 @@
 
 ## How to use
 * [여기](https://github.com/Hydragon516/aliexpress-tracker/releases)에서 최신 파일을 다운받습니다.
-* [여기](https://chromedriver.chromium.org/downloads)에서 본인의 크롬 버전과 동일한 최신 크롬 드라이버를 다운받습니다. 다운받은 드라이버는 다운받은 배송 추적기 프로그램과 같은 폴더에 넣어두면 됩니다.
 * ali-tracker.exe를 실행합니다.
 * 본인의 알리익스프레스 추적 번호를 입력하고 검색을 누릅니다.
 
