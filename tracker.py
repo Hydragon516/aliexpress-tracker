@@ -1,6 +1,8 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread
 from PyQt5.QtWidgets import QAbstractItemView, QLabel, QListWidget, QLineEdit, QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QApplication
 from selenium import webdriver
+import chromedriver_autoinstaller
+import webbrowser
 
 target_number = ""
 total_list = []
@@ -31,16 +33,19 @@ class MyMainGUI(QDialog):
         super().__init__(parent)
 
         self.search_button = QPushButton("검색")
+        self.github_button = QPushButton("Github")
+
         self.tracking_num = QLineEdit(self)
         self.tracking_list = QListWidget(self)
 
         self.status_label = QLabel("", self)
 
         hbox = QHBoxLayout()
-        hbox.addStretch(0)
+        hbox.addStretch(2)
         hbox.addWidget(self.tracking_num)
         hbox.addWidget(self.search_button)
-        hbox.addStretch(0)
+        hbox.addWidget(self.github_button)
+        hbox.addStretch(1)
 
         hbox2 = QHBoxLayout()
         hbox2.addWidget(self.tracking_list)
@@ -55,7 +60,7 @@ class MyMainGUI(QDialog):
 
         self.setLayout(vbox)
 
-        self.setWindowTitle('PyTracker')
+        self.setWindowTitle('Aliexpress-Tracker (v1.1)')
         self.setGeometry(300, 300, 500, 300)
 
 
@@ -67,6 +72,7 @@ class MyMain(MyMainGUI):
         super().__init__(parent)
 
         self.search_button.clicked.connect(self.search)
+        self.github_button.clicked.connect(lambda: webbrowser.open('https://github.com/Hydragon516/aliexpress-tracker'))
         self.tracking_list.setSelectionMode(QAbstractItemView.MultiSelection)
 
         self.tracking_num.textChanged[str].connect(self.title_update)
@@ -110,7 +116,7 @@ class searcher(QThread):
     def __del__(self):
         self.wait()
     
-    def Global_Order_Tracking(self, track_num):
+    def CAINIAO(self, track_num, chrome_ver):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -119,7 +125,7 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome('chromedriver', options=options)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://global.cainiao.com/detail.htm?mailNoList=' + track_num)
@@ -136,7 +142,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ACT(self, track_num):
+    def ACT(self, track_num, chrome_ver):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -145,7 +151,7 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome('chromedriver', options=options)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='http://exp.actcore.com/member/loginTracing.do?fwdCode=KACT&bound=OI&langCode=KOR&DeliveryCode=EMS&HBLNO=' + track_num)
@@ -169,7 +175,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ePOST(self, track_num):
+    def ePOST(self, track_num, chrome_ver):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -178,7 +184,7 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome('chromedriver', options=options)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://service.epost.go.kr/iservice/usr/trace/usrtrc001k01.jsp?displayHeader=N')
@@ -209,7 +215,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def _4PX(self, track_num):
+    def _4PX(self, track_num, chrome_ver):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -219,7 +225,7 @@ class searcher(QThread):
         options.add_argument('--log-level=3')
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36')
 
-        driver = webdriver.Chrome('chromedriver', options=options)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://track.aftership.com/trackings?courier=4px&tracking-numbers=' + track_num)
@@ -261,7 +267,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ePOST_ems(self, track_num):
+    def ePOST_ems(self, track_num, chrome_ver):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -270,7 +276,7 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome('chromedriver', options=options)
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://service.epost.go.kr/trace.RetrieveEmsRigiTrace.comm?displayHeader=N')
@@ -297,6 +303,77 @@ class searcher(QThread):
                 break
         
         driver.close()
+    
+    def yanwen(self, track_num, chrome_ver):
+        global total_list
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("--disable-gpu")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_argument('--log-level=3')
+
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver.implicitly_wait(5)
+
+        driver.get(url='https://track.yw56.com.cn/cn/querydel?nums={}'.format(track_num))
+
+        for indx in range(100):
+            try:
+                _time = (driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/p'.format(indx + 1))).text
+                _time1 = _time.split(" ")[0]
+                _time2 = _time.split(" ")[1]
+                _time = "{} {}".format(_time1, _time2)
+
+                _item = (driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/h6'.format(indx + 1))).text
+                
+                total_list.append((_item, _time))
+
+            except:
+                break
+        
+        driver.close()
+    
+    def unipass(self, track_num, chrome_ver):
+        global total_list
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("--disable-gpu")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_argument('--log-level=3')
+
+        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver.implicitly_wait(5)
+
+        driver.get(url='https://unipass.customs.go.kr/csp/index.do?tgMenuId=MYC_MNU_00000450')
+
+        search_box = driver.find_element_by_xpath('//*[@id="MYC0405101Q_hblNoTab1"]')
+        search_box.send_keys(track_num)
+
+        search = driver.find_element_by_xpath('//*[@id="MYC0405101Q_searchBtnTab1"]')
+        search.send_keys("\n")
+
+        try:
+            driver.find_element_by_xpath('//*[@id="MYC0405102Q_pagePerRecord"]').click()
+            driver.find_element_by_xpath('//*[@id="MYC0405102Q_pagePerRecord"]/option[5]').click()
+
+            list_option_button = driver.find_element_by_xpath('//*[@id="MYC0405102Q_pageRecordBtn"]')
+            list_option_button.send_keys("\n")
+        except:
+            pass
+        
+        for indx in range(100):
+            try:
+                _time = (driver.find_element_by_xpath('//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[1]'.format(2 + indx * 3))).text
+                _item = (driver.find_element_by_xpath('//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[2]'.format(1 + indx * 3))).text
+                
+                total_list.append((_item, _time))
+
+            except:
+                break
+        
+        driver.close()
         
     def run(self):
 
@@ -304,20 +381,43 @@ class searcher(QThread):
         global total_list
         
         if target_number != "":
-            self.updated_label.emit("Global Order Tracking에서 검색 중...")
-            self.Global_Order_Tracking(target_number)
+            chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
+            self.updated_label.emit("크롬 드라이버 버전 확인 완료! : {}".format(chrome_ver))
+
+            options = webdriver.ChromeOptions()
+            options.add_argument('--headless')
+            options.add_argument("--disable-gpu")
+            options.add_experimental_option('excludeSwitches', ['enable-logging'])
+            options.add_argument('--log-level=3')
+            
+            try:
+                driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)   
+            except:
+                chromedriver_autoinstaller.install(True)
+                driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+            
+            driver.close()
+
+            self.updated_label.emit("CAINIAO에서 검색 중...")
+            self.CAINIAO(target_number, chrome_ver)
 
             self.updated_label.emit("에이씨티앤코아물류에서 검색 중...")
-            self.ACT(target_number)
+            self.ACT(target_number, chrome_ver)
 
             self.updated_label.emit("우체국 택배에서 검색 중...")
-            self.ePOST(target_number)
+            self.ePOST(target_number, chrome_ver)
 
             self.updated_label.emit("우체국 택배(EMS)에서 검색 중...")
-            self.ePOST_ems(target_number)
+            self.ePOST_ems(target_number, chrome_ver)
 
             self.updated_label.emit("4PX에서 검색 중...")
-            self._4PX(target_number)
+            self._4PX(target_number, chrome_ver)
+
+            self.updated_label.emit("Yanwen에서 검색 중...")
+            self.yanwen(target_number, chrome_ver)
+
+            self.updated_label.emit("유니패스에서 검색 중...")
+            self.unipass(target_number, chrome_ver)
 
             total_list.sort(key = lambda x : x[1])
 
