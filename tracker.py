@@ -1,7 +1,9 @@
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QThread
 from PyQt5.QtWidgets import QAbstractItemView, QLabel, QListWidget, QLineEdit, QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QApplication
 from selenium import webdriver
-import chromedriver_autoinstaller
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import webbrowser
 
 target_number = ""
@@ -60,7 +62,7 @@ class MyMainGUI(QDialog):
 
         self.setLayout(vbox)
 
-        self.setWindowTitle('Aliexpress-Tracker (v1.1)')
+        self.setWindowTitle('Aliexpress-Tracker (v1.2)')
         self.setGeometry(300, 300, 500, 300)
 
 
@@ -116,7 +118,7 @@ class searcher(QThread):
     def __del__(self):
         self.wait()
     
-    def CAINIAO(self, track_num, chrome_ver):
+    def CAINIAO(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -125,16 +127,16 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://global.cainiao.com/detail.htm?mailNoList=' + track_num)
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _item = (driver.find_element_by_xpath('//*[@id="waybill_path"]/li[{}]/p[1]'.format(indx + 1))).text
-                _time = (driver.find_element_by_xpath('//*[@id="waybill_path"]/li[{}]/p[2]'.format(indx + 1))).text
-
+                _item = (driver.find_element(By.XPATH, '//*[@id="tracking-detail-wrapper"]/div[1]/div[2]/div/div/div/div/div/div[{}]/div[3]/span[1]'.format(indx + 1))).text
+                _time = (driver.find_element(By.XPATH, '//*[@id="tracking-detail-wrapper"]/div[1]/div[2]/div/div/div/div/div/div[{}]/div[3]/div/div/span'.format(indx + 1))).text
+                _time = _time.split(' ')[0] + ' ' + _time.split(' ')[1]
                 total_list.append((_item, _time))
                 
             except:
@@ -142,7 +144,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ACT(self, track_num, chrome_ver):
+    def ACT(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -151,21 +153,19 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='http://exp.actcore.com/member/loginTracing.do?fwdCode=KACT&bound=OI&langCode=KOR&DeliveryCode=EMS&HBLNO=' + track_num)
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _time1 = (driver.find_element_by_xpath('//*[@id="{}"]/td[2]'.format(indx + 1))).text
-                _time2 = (driver.find_element_by_xpath('//*[@id="{}"]/td[3]'.format(indx + 1))).text
-
+                _time1 = (driver.find_element(By.XPATH, '//*[@id="{}"]/td[2]'.format(indx + 1))).text 
+                _time2 = (driver.find_element(By.XPATH, '//*[@id="{}"]/td[3]'.format(indx + 1))).text
                 _time = "{} {}:00".format(_time1, _time2)
 
-                _item1 = (driver.find_element_by_xpath('//*[@id="{}"]/td[5]'.format(indx + 1))).text
-                _item2 = (driver.find_element_by_xpath('//*[@id="{}"]/td[6]'.format(indx + 1))).text
-
+                _item1 = (driver.find_element(By.XPATH, '//*[@id="{}"]/td[5]'.format(indx + 1))).text
+                _item2 = (driver.find_element(By.XPATH, '//*[@id="{}"]/td[6]'.format(indx + 1))).text
                 _item = "{}({})".format(_item1, _item2)
 
                 total_list.append((_item, _time))
@@ -175,7 +175,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ePOST(self, track_num, chrome_ver):
+    def ePOST(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -184,27 +184,26 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://service.epost.go.kr/iservice/usr/trace/usrtrc001k01.jsp?displayHeader=N')
 
-        search_box = driver.find_element_by_xpath('//*[@id="sid1"]')
+        search_box = driver.find_element(By.XPATH, '//*[@id="sid1"]')
         search_box.send_keys(track_num)
 
-        search = driver.find_element_by_xpath('//*[@id="frmDomRigiTrace"]/div/dl/dd/a')
+        search = driver.find_element(By.XPATH, '//*[@id="frmDomRigiTrace"]/div/dl/dd/a')
         search.click()
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _time1 = (driver.find_element_by_xpath('//*[@id="processTable"]/tbody/tr[{}]/td[1]'.format(indx + 1))).text
+                _time1 = (driver.find_element(By.XPATH, '//*[@id="processTable"]/tbody/tr[{}]/td[1]'.format(indx + 1))).text
                 _time1 = _time1.replace(".", "-")
-                _time2 = (driver.find_element_by_xpath('//*[@id="processTable"]/tbody/tr[{}]/td[2]'.format(indx + 1))).text
-
+                _time2 = (driver.find_element(By.XPATH, '//*[@id="processTable"]/tbody/tr[{}]/td[2]'.format(indx + 1))).text
                 _time = "{} {}:00".format(_time1, _time2)
 
-                _item1 = (driver.find_element_by_xpath('//*[@id="processTable"]/tbody/tr[{}]/td[3]/a'.format(indx + 1))).text
-                _item2 = (driver.find_element_by_xpath('//*[@id="processTable"]/tbody/tr[{}]/td[4]'.format(indx + 1))).text
+                _item1 = (driver.find_element(By.XPATH, '//*[@id="processTable"]/tbody/tr[{}]/td[3]/a'.format(indx + 1))).text
+                _item2 = (driver.find_element(By.XPATH, '//*[@id="processTable"]/tbody/tr[{}]/td[4]'.format(indx + 1))).text
                 _item2 = _item2.replace("\n", "")
                 _item = "{}({})".format(_item1, _item2)
 
@@ -215,7 +214,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def _4PX(self, track_num, chrome_ver):
+    def _4PX(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -225,16 +224,16 @@ class searcher(QThread):
         options.add_argument('--log-level=3')
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://track.aftership.com/trackings?courier=4px&tracking-numbers=' + track_num)
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _item = (driver.find_element_by_xpath('//*[@id="checkpoints-container"]/ul/li[{}]/div[2]/div[1]/div'.format(indx + 1))).text
-                _time = (driver.find_element_by_xpath('//*[@id="checkpoints-container"]/ul/li[{}]/div[2]/div[2]/div[1]/p'.format(indx + 1))).text
-                
+                _item = (driver.find_element(By.XPATH, '//*[@id="checkpoints-container"]/ul/li[{}]/div[2]/div[1]/div'.format(indx + 1))).text
+                _time = (driver.find_element(By.XPATH, '//*[@id="checkpoints-container"]/ul/li[{}]/div[2]/div[2]/div[1]/p'.format(indx + 1))).text
+
                 month = _time.split(" ")[0]
                 month = month_string_to_number(month)
 
@@ -267,7 +266,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def ePOST_ems(self, track_num, chrome_ver):
+    def ePOST_ems(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -276,25 +275,25 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://service.epost.go.kr/trace.RetrieveEmsRigiTrace.comm?displayHeader=N')
 
-        search_box = driver.find_element_by_xpath('//*[@id="POST_CODE"]')
+        search_box = driver.find_element(By.XPATH, '//*[@id="POST_CODE"]')
         search_box.send_keys(track_num)
 
-        search = driver.find_element_by_xpath('//*[@id="frmEmsRigiTrace"]/div/dl/dd/a')
+        search = driver.find_element(By.XPATH, '//*[@id="frmEmsRigiTrace"]/div/dl/dd/a')
         search.click()
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _time1 = (driver.find_element_by_xpath('//*[@id="print"]/table[2]/tbody/tr[{}]/td[1]'.format(indx + 1))).text
+                _time1 = (driver.find_element(By.XPATH, '//*[@id="print"]/table[2]/tbody/tr[{}]/td[1]'.format(indx + 1))).text
                 _time1 = _time1.replace(".", "-")
                 _time = "{}:00".format(_time1)
 
-                _item1 = (driver.find_element_by_xpath('//*[@id="print"]/table[2]/tbody/tr[{}]/td[2]'.format(indx + 1))).text
-                _item2 = (driver.find_element_by_xpath('//*[@id="print"]/table[2]/tbody/tr[{}]/td[3]'.format(indx + 1))).text
+                _item1 = (driver.find_element(By.XPATH, '//*[@id="print"]/table[2]/tbody/tr[{}]/td[2]'.format(indx + 1))).text
+                _item2 = (driver.find_element(By.XPATH, '//*[@id="print"]/table[2]/tbody/tr[{}]/td[3]'.format(indx + 1))).text
                 _item = "{}({})".format(_item1, _item2)
 
                 total_list.append((_item, _time))
@@ -304,7 +303,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def yanwen(self, track_num, chrome_ver):
+    def yanwen(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -313,20 +312,20 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://track.yw56.com.cn/cn/querydel?nums={}'.format(track_num))
 
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _time = (driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/p'.format(indx + 1))).text
+                _time = (driver.find_element(By.XPATH, '/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/p'.format(indx + 1))).text
                 _time1 = _time.split(" ")[0]
                 _time2 = _time.split(" ")[1]
                 _time = "{} {}".format(_time1, _time2)
 
-                _item = (driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/h6'.format(indx + 1))).text
-                
+                _item = (driver.find_element(By.XPATH, '/html/body/div/div[2]/div/div[2]/div[3]/div/div[2]/div[2]/div/ul/li[{}]/div[2]/h6'.format(indx + 1))).text
+
                 total_list.append((_item, _time))
 
             except:
@@ -334,7 +333,7 @@ class searcher(QThread):
         
         driver.close()
     
-    def unipass(self, track_num, chrome_ver):
+    def unipass(self, track_num):
         global total_list
 
         options = webdriver.ChromeOptions()
@@ -343,31 +342,67 @@ class searcher(QThread):
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
         options.add_argument('--log-level=3')
 
-        driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.implicitly_wait(5)
 
         driver.get(url='https://unipass.customs.go.kr/csp/index.do?tgMenuId=MYC_MNU_00000450')
 
-        search_box = driver.find_element_by_xpath('//*[@id="MYC0405101Q_hblNoTab1"]')
+        search_box = driver.find_element(By.XPATH, '//*[@id="MYC0405101Q_hblNoTab1"]')
         search_box.send_keys(track_num)
 
-        search = driver.find_element_by_xpath('//*[@id="MYC0405101Q_searchBtnTab1"]')
+        search = driver.find_element(By.XPATH, '//*[@id="MYC0405101Q_searchBtnTab1"]')
         search.send_keys("\n")
 
         try:
-            driver.find_element_by_xpath('//*[@id="MYC0405102Q_pagePerRecord"]').click()
-            driver.find_element_by_xpath('//*[@id="MYC0405102Q_pagePerRecord"]/option[5]').click()
+            driver.find_element(By.XPATH, '//*[@id="MYC0405102Q_pagePerRecord"]').click()
+            driver.find_element(By.XPATH, '//*[@id="MYC0405102Q_pagePerRecord"]/option[5]').click()
 
-            list_option_button = driver.find_element_by_xpath('//*[@id="MYC0405102Q_pageRecordBtn"]')
+            list_option_button = driver.find_element(By.XPATH, '//*[@id="MYC0405102Q_pageRecordBtn"]')
             list_option_button.send_keys("\n")
         except:
             pass
         
-        for indx in range(100):
+        for indx in range(50):
             try:
-                _time = (driver.find_element_by_xpath('//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[1]'.format(2 + indx * 3))).text
-                _item = (driver.find_element_by_xpath('//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[2]'.format(1 + indx * 3))).text
-                
+                _time = (driver.find_element(By.XPATH, '//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[1]'.format(2 + indx * 3))).text
+                _item = (driver.find_element(By.XPATH, '//*[@id="MYC0405102Q_resultListL"]/tbody/tr[{}]/td[2]'.format(1 + indx * 3))).text
+
+                total_list.append((_item, _time))
+
+            except:
+                break
+        
+        driver.close()
+    
+    def CJ(self, track_num):
+        global total_list
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("--disable-gpu")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_argument('--log-level=3')
+
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.implicitly_wait(5)
+
+        driver.get(url='https://www.cjlogistics.com/ko/tool/parcel/tracking')
+
+        search_box = driver.find_element(By.XPATH, '//*[@id="paramInvcNo"]')
+        search_box.send_keys(track_num)
+
+        search = driver.find_element(By.XPATH, '//*[@id="btnSubmit"]')
+        search.send_keys("\n")
+        
+        for indx in range(50):
+            try:
+                _time = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[2]'.format(1 + indx * 2))).text
+                _time = _time[:-2]
+
+                _item1 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[3]'.format(1 + indx * 2))).text
+                _item2 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[4]'.format(1 + indx * 2))).text
+                _item = "{}({})".format(_item1, _item2)
+
                 total_list.append((_item, _time))
 
             except:
@@ -381,9 +416,6 @@ class searcher(QThread):
         global total_list
         
         if target_number != "":
-            chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
-            self.updated_label.emit("크롬 드라이버 버전 확인 완료! : {}".format(chrome_ver))
-
             options = webdriver.ChromeOptions()
             options.add_argument('--headless')
             options.add_argument("--disable-gpu")
@@ -391,33 +423,37 @@ class searcher(QThread):
             options.add_argument('--log-level=3')
             
             try:
-                driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)   
+                self.updated_label.emit("크롬 드라이버 확인 중...")
+                driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+                self.updated_label.emit("크롬 드라이버 확인 완료!")
+                driver.close()
             except:
-                chromedriver_autoinstaller.install(True)
-                driver = webdriver.Chrome(f'./{chrome_ver}/chromedriver.exe', options=options)
-            
-            driver.close()
+                self.updated_label.emit("크롬 드라이버 확인 실패!")
+                return
 
             self.updated_label.emit("CAINIAO에서 검색 중...")
-            self.CAINIAO(target_number, chrome_ver)
+            self.CAINIAO(target_number)
 
             self.updated_label.emit("에이씨티앤코아물류에서 검색 중...")
-            self.ACT(target_number, chrome_ver)
+            self.ACT(target_number)
 
             self.updated_label.emit("우체국 택배에서 검색 중...")
-            self.ePOST(target_number, chrome_ver)
+            self.ePOST(target_number)
 
             self.updated_label.emit("우체국 택배(EMS)에서 검색 중...")
-            self.ePOST_ems(target_number, chrome_ver)
+            self.ePOST_ems(target_number)
 
             self.updated_label.emit("4PX에서 검색 중...")
-            self._4PX(target_number, chrome_ver)
+            self._4PX(target_number)
 
             self.updated_label.emit("Yanwen에서 검색 중...")
-            self.yanwen(target_number, chrome_ver)
+            self.yanwen(target_number)
 
             self.updated_label.emit("유니패스에서 검색 중...")
-            self.unipass(target_number, chrome_ver)
+            self.unipass(target_number)
+
+            self.updated_label.emit("CJ 대한통운에서 검색 중...")
+            self.CJ(target_number)
 
             total_list.sort(key = lambda x : x[1])
 
