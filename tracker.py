@@ -62,7 +62,7 @@ class MyMainGUI(QDialog):
 
         self.setLayout(vbox)
 
-        self.setWindowTitle('Aliexpress-Tracker (v1.2)')
+        self.setWindowTitle('Aliexpress-Tracker (v1.3)')
         self.setGeometry(300, 300, 500, 300)
 
 
@@ -388,20 +388,50 @@ class searcher(QThread):
 
         driver.get(url='https://www.cjlogistics.com/ko/tool/parcel/tracking')
 
-        search_box = driver.find_element(By.XPATH, '//*[@id="paramInvcNo"]')
-        search_box.send_keys(track_num)
+        try:
+            search_box = driver.find_element(By.XPATH, '//*[@id="paramInvcNo"]')
+            search_box.send_keys(track_num)
 
-        search = driver.find_element(By.XPATH, '//*[@id="btnSubmit"]')
-        search.send_keys("\n")
+            search = driver.find_element(By.XPATH, '//*[@id="btnSubmit"]')
+            search.send_keys("\n")
+            
+            for indx in range(50):
+                try:
+                    _time = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[2]'.format(1 + indx * 2))).text
+                    _time = _time[:-2]
+
+                    _item1 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[3]'.format(1 + indx * 2))).text
+                    _item2 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[4]'.format(1 + indx * 2))).text
+                    _item = "{}({})".format(_item1, _item2)
+
+                    total_list.append((_item, _time))
+
+                except:
+                    break
+        except:
+            pass
         
+        driver.close()
+    
+    def winion(self, track_num):
+        global total_list
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_argument("--disable-gpu")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_argument('--log-level=3')
+
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        driver.implicitly_wait(5)
+
+        driver.get(url='https://winionlogis.com/Trace.do?T={}'.format(track_num))
+
         for indx in range(50):
             try:
-                _time = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[2]'.format(1 + indx * 2))).text
-                _time = _time[:-2]
-
-                _item1 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[3]'.format(1 + indx * 2))).text
-                _item2 = (driver.find_element(By.XPATH, '//*[@id="statusDetail"]/tr[{}]/td[4]'.format(1 + indx * 2))).text
-                _item = "{}({})".format(_item1, _item2)
+                _time = (driver.find_element(By.XPATH, '//*[@id="tbList"]/tr[{}]/td[2]'.format(indx + 1))).text
+                _time = "{}:00".format(_time)
+                _item = (driver.find_element(By.XPATH, '//*[@id="tbList"]/tr[{}]/td[4]'.format(indx + 1))).text
 
                 total_list.append((_item, _time))
 
@@ -411,7 +441,6 @@ class searcher(QThread):
         driver.close()
         
     def run(self):
-
         global target_number
         global total_list
         
@@ -454,6 +483,9 @@ class searcher(QThread):
 
             self.updated_label.emit("CJ 대한통운에서 검색 중...")
             self.CJ(target_number)
+
+            self.updated_label.emit("위니온로지스 택배에서 검색 중...")
+            self.winion(target_number)
 
             total_list.sort(key = lambda x : x[1])
 
