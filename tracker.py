@@ -62,7 +62,7 @@ class MyMainGUI(QDialog):
 
         self.setLayout(vbox)
 
-        self.setWindowTitle('Aliexpress-Tracker (v1.3)')
+        self.setWindowTitle('Aliexpress-Tracker (v1.4)')
         self.setGeometry(300, 300, 500, 300)
 
 
